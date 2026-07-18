@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import "./App.css";
 
 
@@ -9,49 +10,65 @@ function App() {
   const [todos, setTodos] = useState([]);
 
 
-  const addTask = () => {
+  const API = "http://localhost:5000";
+
+
+  // Get tasks from backend
+  const getTodos = async () => {
+
+    const response = await axios.get(`${API}/todos`);
+
+    setTodos(response.data);
+
+  };
+
+
+  // Add task
+  const addTask = async () => {
 
     if(task.trim() === "") return;
 
 
-    const newTodo = {
+    await axios.post(`${API}/todos`, {
 
-      id: Date.now(),
+      text: task
 
-      text: task,
+    });
 
-      completed: false
-
-    };
-
-
-    setTodos([...todos, newTodo]);
 
     setTask("");
 
-  };
-
-
-  const completeTask = (id) => {
-
-    setTodos(
-      todos.map(todo =>
-        todo.id === id
-        ? {...todo, completed: !todo.completed}
-        : todo
-      )
-    );
+    getTodos();
 
   };
 
 
-  const deleteTask = (id) => {
+  // Complete task
+  const completeTask = async (id) => {
 
-    setTodos(
-      todos.filter(todo => todo.id !== id)
-    );
+    await axios.put(`${API}/todos/${id}`);
+
+    getTodos();
 
   };
+
+
+  // Delete task
+  const deleteTask = async (id) => {
+
+    await axios.delete(`${API}/todos/${id}`);
+
+    getTodos();
+
+  };
+
+
+  useEffect(()=>{
+
+    getTodos();
+
+  },[]);
+
 
 
   return (
@@ -66,7 +83,9 @@ function App() {
         </h1>
 
 
+
         <div className="input-box">
+
 
           <input
 
@@ -94,20 +113,33 @@ function App() {
 
         <ul>
 
-          {todos.map(todo => (
+
+          {todos.map(todo=>(
+
 
             <li
-  key={todo.id}
-  className={todo.completed ? "completed" : ""}
->
 
-  <span>
-    {todo.text}
-  </span>
+              key={todo.id}
+
+              className={
+                todo.completed
+                ? "completed"
+                : ""
+              }
+
+            >
+
+
+              <span>
+
+                {todo.text}
+
+              </span>
+
 
 
               <button
-                onClick={()=>completeTask(todo.id)}
+                onClick={() => completeTask(todo.id)}
               >
 
                 ✓
@@ -117,7 +149,7 @@ function App() {
 
 
               <button
-                onClick={()=>deleteTask(todo.id)}
+                onClick={() => deleteTask(todo.id)}
               >
 
                 Delete
@@ -127,6 +159,7 @@ function App() {
 
             </li>
 
+
           ))}
 
 
@@ -134,7 +167,6 @@ function App() {
 
 
       </div>
-
 
     </div>
 
